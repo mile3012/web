@@ -1,0 +1,223 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proforma de Productos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        .cabezera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #e3f2fd;
+            color: #0277bd;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .proforma-header, .encabezado-info {
+            margin-bottom: 20px;
+        }
+
+        .encabezado-info input {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .contenido {
+            display: flex;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .proforma {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #bbdefb;
+            color: #0277bd;
+            text-transform: uppercase;
+            font-weight: normal;
+        }
+
+        .total, .iva, .importe-final {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .img-referencial {
+            max-width: 50px;
+            height: auto;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .total-calculo {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        .total-calculo div {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="cabezera">
+        <div class="logo">
+            <img src="IMAGENES/Captura.PNG" alt="Logo" />
+        </div>
+        <nav>
+            <h4>Zona Central Calle Murillo #1028, Centro Comercial Peatonal Of. 14, La Paz - Bolivia</h4>
+        </nav>
+    </header> 
+
+    <main class="proforma">
+        <div class="proforma-header">
+            <h3>Proforma de Productos</h3>
+            <div class="encabezado-info">
+                <label>Nro de Venta: <input type="text" id="nroVenta"></label>
+                <label>Fecha: <input type="text" id="fecha" readonly></label>
+                <label>Cliente: <input type="text" id="cliente"></label>
+                <label>Teléfono: <input type="text" id="telefono"></label>
+                <label>Dirección: <input type="text" id="direccion"></label>
+                <label>Email: <input type="email" id="email"></label>
+            </div>
+        </div>
+
+        <h3>Selecciona los productos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Descripción</th>
+                    <th>Precio Unitario (Bs)</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal (Bs)</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-productos">
+                <!-- Los productos se agregarán aquí -->
+            </tbody>
+        </table>
+        
+        <div class="total-calculo">
+            <div class="total">Subtotal: Bs <span id="subtotal">0.00</span></div>
+            <div class="iva">IVA (13%): Bs <span id="iva">0.00</span></div>
+            <div class="importe-final">Importe Final: Bs <span id="importe-final">0.00</span></div>
+        </div>
+    </main>
+
+    <script>
+        const productos = [
+            { nombre: "Cámara", precio: 100, descripcion: "Cámara de alta definición", img: "IMAGENES/2mp analg.PNG" },
+            { nombre: "Grabador", precio: 150, descripcion: "Grabador de vídeo digital", img: "IMAGENES/winsense.PNG" },
+            { nombre: "Balloon", precio: 80, descripcion: "Balón de seguridad", img: "IMAGENES/balum.jpg" },
+            { nombre: "Cable", precio: 30, descripcion: "Cable de conexión", img: "IMAGENES/cable 100.PNG" },
+            { nombre: "Fuente de Poder", precio: 40, descripcion: "Fuente de alimentación", img: "IMAGENES/fuente.jpg" },
+            { nombre: "Disco Duro", precio: 120, descripcion: "Disco duro para almacenamiento", img: "IMAGENES/DISCO DURO.jpg" }
+        ];
+
+        function init() {
+            document.getElementById('fecha').value = new Date().toLocaleDateString();
+            renderProductRows();
+            calculateTotals();
+        }
+
+        function renderProductRows() {
+            const tablaProductos = document.getElementById('tabla-productos');
+            productos.forEach((producto, index) => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${producto.nombre}</td>
+                    <td>
+                        <select onchange="updateDescription(${index}, this.value)">
+                            ${productos.map((p, i) => `<option value="${i}" ${i === index ? 'selected' : ''}>${p.nombre}</option>`).join('')}
+                        </select>
+                        <div id="desc-${index}">${producto.descripcion}</div>
+                        <img src="${producto.img}" alt="${producto.nombre}" class="img-referencial" id="img-${index}">
+                    </td>
+                    <td>Bs <span id="precio-${index}">${producto.precio.toFixed(2)}</span></td>
+                    <td>
+                        <select onchange="updateQuantity(${index}, this.value)">
+                            ${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>Bs <span id="subtotal-${index}">0.00</span></td>
+                `;
+                tablaProductos.appendChild(fila);
+            });
+        }
+
+        function updateDescription(index, productIndex) {
+            const product = productos[productIndex];
+            document.getElementById(`desc-${index}`).textContent = product.descripcion;
+            document.getElementById(`img-${index}`).src = product.img;
+            document.getElementById(`precio-${index}`).textContent = product.precio.toFixed(2);
+            calculateTotals();
+        }
+
+        function updateQuantity(index, quantity) {
+            productos[index].cantidad = parseInt(quantity);
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+
+            productos.forEach((producto, index) => {
+                const cantidad = producto.cantidad || 1;
+                const subtotalProducto = producto.precio * cantidad;
+                subtotal += subtotalProducto;
+
+                document.getElementById(`subtotal-${index}`).textContent = subtotalProducto.toFixed(2);
+            });
+
+            const iva = subtotal * 0.13;
+            const totalFinal = subtotal + iva;
+
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('iva').textContent = iva.toFixed(2);
+            document.getElementById('importe-final').textContent = totalFinal.toFixed(2);
+        }
+
+        init();
+    </script>
+
+</body>
+</html>
